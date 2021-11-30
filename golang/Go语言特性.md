@@ -125,3 +125,83 @@ Go语言引入了goroutine概念，它使得并发编程变得非常简单。通
 
   Go语言采用消息传递你想，但是仍然保持着共享内存模型，通过channel实现，两个goroutine之间可以通过通道来进行交互。
 
+通过在函数调用前使用关键字go，我们即可让该函数以goroutine方式执行。goroutine是一种 比线程更加轻盈、更省资源的协程。Go语言通过系统的线程来多路派遣这些函数的执行，使得 每个用go关键字执行的函数可以运行成为一个单位协程。当一个协程阻塞的时候，调度器就会自 动把其他协程安排到另外的线程中去执行，从而实现了程序无等待并行化运行。而且调度的开销 非常小，一颗CPU调度的规模不下于每秒百万次，这使得我们能够创建大量的goroutine，从而可 以很轻松地编写高并发程序，达到我们想要的目的。
+
+```go
+package main
+import "fmt"
+func sum(values [] int, resultChan chan int) {
+	sum := 0
+	for _, value := range values {
+		sum += value
+	}
+	resultChan <- sum // 将计算结果发送到channel中 //
+	}
+
+	func main() {
+		values := [] int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		resultChan := make(chan int, 2)
+		go sum(values[:len(values)/2], resultChan)
+		go sum(values[len(values)/2:], resultChan)
+		sum1, sum2 := <-resultChan, <-resultChan // 接收结果
+		fmt.Println("Result:", sum1, sum2, sum1 + sum2)
+	}
+
+Result: 40 15 55
+```
+
+### 2.8 反射
+
+​		反射(reflection)是在Java语言出现后迅速流行起来的一种概念。通过反射，你可以获取对象类型的详细信息，并可动态操作对象。反射是把双刃剑，功能强大但代码可读性并不理想。若 非必要，我们并不推荐使用反射。
+
+​		Go语言的反射实现了反射的大部分功能，但没有像Java语言那样内置类型工厂，故而无法做 到像Java那样通过类型字符串创建对象实例。在Java中，你可以读取配置并根据类型名称创建对 应的类型，这是一种常见的编程手法，但在Go语言中这并不被推荐。
+
+​		反射最常见的使用场景是做对象的序列化(serialization，有时候也叫Marshal & Unmarshal)。 例如，Go语言标准库的encoding/json、encoding/xml、encoding/gob、encoding/binary等包就大量 依赖于反射功能来实现。
+
+```go
+package main
+import (
+	"fmt"
+	"reflect"
+)
+type Bird struct {
+		Name string
+		LifeExpectance int 
+}
+func (b *Bird) Fly() { 
+  	fmt.Println("I am flying...")
+}
+func main() {
+		sparrow := &Bird{"Sparrow", 3}
+		s := reflect.ValueOf(sparrow).Elem() 
+    typeOfT := s.Type()
+		for i := 0; i < s.NumField(); i++ {
+      f := s.Field(i)
+			fmt.Printf("%d: %s %s = %v\n", i, typeOfT.Field(i).Name, f.Type(),f.Interface())
+} }
+```
+
+```
+0: Name string = Sparrow
+1: LifeExpectance int = 3
+```
+
+### 2.9 和C语言交互
+
+​		由于Go语言与C语言之间的天生联系，Go语言的设计者们自然不会忽略如何重用现有C模块 的这个问题，这个功能直接被命名为Cgo。Cgo既是语言特性，同时也是一个工具的名称。
+
+​		在Go代码中，可以按Cgo的特定语法混合编写C语言代码，然后Cgo工具可以将这些混合的C 代码提取并生成对于C功能的调用包装代码。开发者基本上可以完全忽略这个Go语言和C语言的 边界是如何跨越的。
+
+```go
+package main
+/*
+#include <stdio.h> */
+import "C"
+import "unsafe"
+func main() {
+		cstr := C.CString("Hello, world") C.puts(cstr) C.free(unsafe.Pointer(cstr))
+}
+```
+
+
+
