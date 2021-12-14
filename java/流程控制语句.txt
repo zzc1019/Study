@@ -1,0 +1,32 @@
+1.分支结构
+
+单分支结构：只做单一的判断 if (){	}
+双分枝结构if(){}else{}
+多分枝结构
+//创建文件扫描器对象，System.in 表示的是标准输入
+//装饰者模式 
+Import java.util.Scanner;
+Scanner sc =  new Scanner(System.in);
+String str = sc.nextline();
+
+switch(表达式){
+	case value1:
+	语句；
+	break；
+	case value2:
+	语句；
+	break；
+	……
+
+
+
+	default;
+	默认语句；
+}
+
+2.循环结构
+while(){}
+Do{}while()
+3.continue break
+	continue 跳出本次循环
+	break 跳出本层循环
